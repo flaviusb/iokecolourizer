@@ -9,12 +9,19 @@ import Data.Maybe
 
 import Control.Applicative
 import System.IO
+import System.Environment
 
 import IokeGrammar
 import IokeColours
 
 main :: IO ()
 main = do
-    the_data <- readFile "iokefile.ik.in"
-    withFile "iokefile.html.out" WriteMode (\handle -> do
-      hPutStr handle $ printColours the_data)
+    the_args <- getArgs
+    the_data <- readFile (from the_args)
+    withFile (to the_args) WriteMode (\handle -> do
+       hPutStr handle $ printColours the_data)
+    where from [x, _] = x
+          from [x]    = x
+          from _      = "iokefile.ik.in"
+          to   [_, y] = y
+          to   _      = "iokefile.html.out"
