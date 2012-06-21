@@ -17,7 +17,7 @@ data IListElem = IListElem Message deriving (Show, Data, Eq, Typeable)
 
 data Message = Message Name [MessageLine] deriving (Show, Data, Eq, Typeable)
 
-data MessageLine = [Message] deriving (Show, Data, Eq, Typeable)
+data MessageLine = MessageLine [Message] deriving (Show, Data, Eq, Typeable)
 
 data LitS = SquareString [Chunk] | QuotedString [Chunk] deriving (Show, Data, Eq, Typeable)
 
