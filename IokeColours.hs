@@ -25,15 +25,17 @@ printColourized iks = concat (map printBlock (colourize iks))
 
 data ColourBlock = ColourBlock String Colour
 
-data Colour = Colour String | UnColoured
+data Colour = Colour String | UnColoured | Rainbow Int
 
 comment  = Colour "rem"
 bangline = Colour "hb"
 
+
 printBlock :: ColourBlock -> String
 printBlock block = case block of
-  ColourBlock text UnColoured   -> text
-  ColourBlock text (Colour col) -> "<div class=\"" ++ col ++ "\">" ++ text ++ "</div>"
+  ColourBlock text UnColoured    -> text
+  ColourBlock text (Colour col)  -> "<div class=\"" ++ col ++ "\">" ++ text ++ "</div>"
+  ColourBlock text (Rainbow lvl) -> "<b" ++ (show lvl) ++">" ++ text ++ "</b" ++ (show lvl) ++">"  -- For brackets. Use tags <b0> <b1> etc with styling in css, rather than divdivdivdiv
 
 
 colourize :: [Ioke] -> [ColourBlock]
