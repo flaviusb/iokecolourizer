@@ -1,0 +1,16 @@
+name:            IokeColourizer
+version:         0.1
+synopsis:        Ioke Colourizer program, and Ioke Grammar and Colour libraries
+license:         GPLv3
+author:          Justin (:flaviusb) Marsh
+build-type:      Simple
+cabal-version:   >= 1.8
+
+library
+  build-depends:   Peggy
+  exposed-modules: IokeColours, IokeGrammar
+
+executable IokeColourizer
+  main-is:         IokeColourizer.hs
+  hs-source-dirs:  .
+  other-modules:   IokeColours, IokeGrammar, Peggy
