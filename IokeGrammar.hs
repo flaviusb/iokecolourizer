@@ -1,7 +1,7 @@
 {-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveDataTypeable #-}
 
 module IokeGrammar
-(ioke, Ioke(..)) where
+(ioke, Ioke(..), LitS(..), Chunk(..)) where
 import Data.Data
 import Data.Typeable
 import qualified Data.Map as Map
@@ -21,13 +21,37 @@ data MessageLine = MessageLine [Message] deriving (Show, Data, Eq, Typeable)
 
 data LitS = SquareString [Chunk] | QuotedString [Chunk] deriving (Show, Data, Eq, Typeable)
 
-data Chunk = Lit String | Escape String | Interpolate Message deriving (Show, Data, Eq, Typeable)
+data Chunk = Lit String | Escape String | Interpolate MessageLine deriving (Show, Data, Eq, Typeable)
 
 data Name = String deriving (Show, Data, Eq, Typeable)
 
 [peggy|
 ioke :: [Ioke]
-  = (ret / dot / comment / hashbang / ispace)*
+  = (ret / dot / comment / hashbang / ispace / istring)*
+
+istring :: Ioke
+  = (squarestring / quotedstring)
+
+squarestring :: Ioke
+  = '#[' ( squarelit / squareescape / interpolate )* ']' { LiteralString (SquareString $1) }
+
+quotedstring :: Ioke
+  = '\"' ( quotedlit / quotedescape / interpolate )* '\"' { LiteralString (QuotedString $1) }
+
+squarelit :: Chunk
+  = [^\\\]]+ { (Lit $1) }
+
+quotedlit :: Chunk
+  = [^\\"]+  { (Lit $1) }  --"
+
+squareescape :: Chunk
+  = '\\' [nr\]] { (Escape ['\\', $1]) }
+
+quotedescape :: Chunk
+  = '\\' [nr"] { (Escape ['\\', $1]) } --"
+
+interpolate :: Chunk
+  = '{'  '}' { (Interpolate (MessageLine [])) } -- Nothing here at the moment
 
 ret :: Ioke
   = [\r\n] { Ret }
