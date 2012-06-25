@@ -30,8 +30,9 @@ data Colour = Colour String | UnColoured | Rainbow Int
 comment   = Colour "rem"
 bangline  = Colour "hb"
 quotes    = Colour "q"
-litcolour = Colour "lit"
+litcolour = Colour "IokeString"
 esccolour = Colour "esc"
+splcolour = Colour "StringSpliceRegion"
 
 
 printBlock :: ColourBlock -> String
@@ -56,7 +57,7 @@ stringcolours (SquareString chunk) = [ColourBlock "#[" quotes] ++ (chunkcolours 
 stringcolours (QuotedString chunk) = [ColourBlock "\"" quotes] ++ (chunkcolours chunk) ++ [ColourBlock "\"" quotes]
 
 chunkcolours :: [Chunk] -> [ColourBlock]
-chunkcolours = map (\chunk -> case chunk of
-  Lit    str    -> ColourBlock str litcolour
-  Escape str    -> ColourBlock str esccolour
-  Interpolate x -> ColourBlock "" UnColoured)
+chunkcolours = concat $ map (\chunk -> case chunk of
+  Lit    str    -> [ColourBlock str litcolour]
+  Escape str    -> [ColourBlock str esccolour]
+  Interpolate x -> [ColourBlock "#{" splregion, ColourBlock "" UnColoured, ColourBlock "}" splregion])
