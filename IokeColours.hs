@@ -1,7 +1,7 @@
 {-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveDataTypeable #-}
 
 module IokeColours
-(printColours) where
+(printColours, getIoke, printColourized) where
 
 import Data.Data
 import Data.Typeable
@@ -16,7 +16,10 @@ import System.IO
 import IokeGrammar
 
 printColours :: String -> String
-printColours the_data = printColourized (case (parseString ioke "foo" the_data) of
+printColours the_data = printColourized $ getIoke the_data
+
+getIoke :: String -> [Ioke]
+getIoke the_data = (case (parseString ioke "foo" the_data) of
         Right foo -> foo
         Left _    -> [])
 
@@ -41,13 +44,15 @@ printBlock block = case block of
   ColourBlock text (Colour col)  -> "<div class=\"" ++ col ++ "\">" ++ text ++ "</div>"
   ColourBlock text (Rainbow lvl) -> "<b" ++ (show lvl) ++">" ++ text ++ "</b" ++ (show lvl) ++">"  -- For brackets. Use tags <b0> <b1> etc with styling in css, rather than divclaassdivclassdivclassdivclass
 
+escHTML :: String -> String
+escHTML str = str -- replace this with an actual escaper
 
 colourize :: [Ioke] -> [ColourBlock]
 colourize code = concat (map (\ik -> (case ik of
-  Comment cont    -> [ColourBlock cont                comment]
+  Comment cont    -> [ColourBlock (escHTML cont)      comment]
   Ret             -> [ColourBlock "\r\n"              UnColoured]
   Fullstop        -> [ColourBlock "."                 UnColoured]
-  BangLine bang   -> [ColourBlock bang                bangline]
+  BangLine bang   -> [ColourBlock (escHTML bang)      bangline]
   ISpace   num    -> [ColourBlock (replicate num ' ') UnColoured]
   LiteralString x -> stringcolours x
   _               -> [ColourBlock "" UnColoured])) code)
@@ -57,7 +62,8 @@ stringcolours (SquareString chunk) = [ColourBlock "#[" quotes] ++ (chunkcolours 
 stringcolours (QuotedString chunk) = [ColourBlock "\"" quotes] ++ (chunkcolours chunk) ++ [ColourBlock "\"" quotes]
 
 chunkcolours :: [Chunk] -> [ColourBlock]
-chunkcolours = concat $ map (\chunk -> case chunk of
-  Lit    str    -> [ColourBlock str litcolour]
-  Escape str    -> [ColourBlock str esccolour]
-  Interpolate x -> [ColourBlock "#{" splregion, ColourBlock "" UnColoured, ColourBlock "}" splregion])
+chunkcolours chunks = concat $ map (\chunk -> case chunk of
+  Lit         str -> [ColourBlock (escHTML str) litcolour]
+  Escape      str -> [ColourBlock (escHTML str) esccolour]
+  RawInsert   str -> [ColourBlock str litcolour]
+  Interpolate x   -> [ColourBlock "#{" splcolour, ColourBlock "" UnColoured, ColourBlock "}" splcolour]) chunks

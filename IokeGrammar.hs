@@ -21,7 +21,7 @@ data MessageLine = MessageLine [Message] deriving (Show, Data, Eq, Typeable)
 
 data LitS = SquareString [Chunk] | QuotedString [Chunk] deriving (Show, Data, Eq, Typeable)
 
-data Chunk = Lit String | Escape String | Interpolate MessageLine deriving (Show, Data, Eq, Typeable)
+data Chunk = Lit String | Escape String | Interpolate MessageLine | RawInsert String deriving (Show, Data, Eq, Typeable)
 
 data Name = String deriving (Show, Data, Eq, Typeable)
 
