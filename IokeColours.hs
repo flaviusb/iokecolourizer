@@ -36,6 +36,7 @@ quotes    = Colour "q"
 litcolour = Colour "IokeString"
 esccolour = Colour "esc"
 splcolour = Colour "StringSpliceRegion"
+symcolour = Colour "Symbol"
 
 
 printBlock :: ColourBlock -> String
@@ -55,15 +56,23 @@ colourize code = concat (map (\ik -> (case ik of
   BangLine bang   -> [ColourBlock (escHTML bang)      bangline]
   ISpace   num    -> [ColourBlock (replicate num ' ') UnColoured]
   LiteralString x -> stringcolours x
+  Symbol symb     -> symbolise symb
   _               -> [ColourBlock "" UnColoured])) code)
 
 stringcolours :: LitS -> [ColourBlock]
-stringcolours (SquareString chunk) = [ColourBlock "#[" quotes] ++ (chunkcolours chunk) ++ [ColourBlock "]"  quotes]
-stringcolours (QuotedString chunk) = [ColourBlock "\"" quotes] ++ (chunkcolours chunk) ++ [ColourBlock "\"" quotes]
+stringcolours (SquareString chunk) = [ColourBlock "#[" quotes] ++ (stringchunks chunk) ++ [ColourBlock "]"  quotes]
+stringcolours (QuotedString chunk) = [ColourBlock "\"" quotes] ++ (stringchunks chunk) ++ [ColourBlock "\"" quotes]
 
-chunkcolours :: [Chunk] -> [ColourBlock]
-chunkcolours chunks = concat $ map (\chunk -> case chunk of
-  Lit         str -> [ColourBlock (escHTML str) litcolour]
-  Escape      str -> [ColourBlock (escHTML str) esccolour]
-  RawInsert   str -> [ColourBlock str litcolour]
+symbolise :: LitSymb -> [ColourBlock]
+symbolise (BareSymbol str)     = [ColourBlock (':':str) symcolour]
+symbolise (QuotedSymbol chunk) = [ColourBlock ":\"" quotes] ++ (symbolchunks chunk) ++ [ColourBlock "\"" quotes]
+
+chunkcolours :: Colour -> Colour -> [Chunk] -> [ColourBlock]
+chunkcolours litcol esccol chunks = concat $ map (\chunk -> case chunk of
+  Lit         str -> [ColourBlock (escHTML str) litcol]
+  Escape      str -> [ColourBlock (escHTML str) esccol]
+  RawInsert   str -> [ColourBlock str litcol]
   Interpolate x   -> [ColourBlock "#{" splcolour, ColourBlock "" UnColoured, ColourBlock "}" splcolour]) chunks
+
+stringchunks = chunkcolours litcolour esccolour
+symbolchunks = chunkcolours symcolour esccolour
