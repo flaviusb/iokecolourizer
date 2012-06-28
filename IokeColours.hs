@@ -19,9 +19,14 @@ printColours :: String -> String
 printColours the_data = printColourized $ getIoke the_data
 
 getIoke :: String -> [Ioke]
-getIoke the_data = (case (parseString ioke "foo" the_data) of
+getIoke the_data = rainbowbraces 0 9 (case (parseString ioke "foo" the_data) of
         Right foo -> foo
         Left _    -> [])
+
+rainbowbraces :: Int -> Int -> [Ioke] -> [Ioke]
+rainbowbraces curr lim uncoloured = map (\ik -> case ik of
+  Brackets lvl expr -> Brackets curr (rainbowbraces (if (curr + 1) <= lim then curr + 1 else 0) lim expr)
+  x                 -> x) uncoloured
 
 printColourized :: [Ioke] -> String
 printColourized iks = concat (map printBlock (colourize iks))
@@ -50,14 +55,15 @@ escHTML str = str -- replace this with an actual escaper
 
 colourize :: [Ioke] -> [ColourBlock]
 colourize code = concat (map (\ik -> (case ik of
-  Comment cont    -> [ColourBlock (escHTML cont)      comment]
-  Ret             -> [ColourBlock "\r\n"              UnColoured]
-  Fullstop        -> [ColourBlock "."                 UnColoured]
-  BangLine bang   -> [ColourBlock (escHTML bang)      bangline]
-  ISpace   num    -> [ColourBlock (replicate num ' ') UnColoured]
-  LiteralString x -> stringcolours x
-  Symbol symb     -> symbolise symb
-  _               -> [ColourBlock "" UnColoured])) code)
+  Comment cont      -> [ColourBlock (escHTML cont)      comment]
+  Ret               -> [ColourBlock "\r\n"              UnColoured]
+  Fullstop          -> [ColourBlock "."                 UnColoured]
+  BangLine bang     -> [ColourBlock (escHTML bang)      bangline]
+  ISpace   num      -> [ColourBlock (replicate num ' ') UnColoured]
+  LiteralString x   -> stringcolours x
+  Symbol symb       -> symbolise symb
+  Brackets lvl expr -> [ColourBlock "(" (Rainbow lvl)] ++ (colourize expr) ++ [ColourBlock ")" (Rainbow lvl)]
+  _                 -> [ColourBlock "" UnColoured])) code)
 
 stringcolours :: LitS -> [ColourBlock]
 stringcolours (SquareString chunk) = [ColourBlock "#[" quotes] ++ (stringchunks chunk) ++ [ColourBlock "]"  quotes]

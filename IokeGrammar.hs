@@ -9,7 +9,9 @@ import qualified Data.List as List
 import Text.Peggy 
 import Data.Maybe
 
-data Ioke = Cell String Message | Symbol LitSymb | Dict [DictElem] | IList [IListElem] | Comment String | LiteralString LitS | QuotedMessage | QuasiQuotedMessage | UnQuotedMessage | Ret | Fullstop | ISpace Int | BangLine String | MethodComment String | Key String  deriving (Show, Data, Eq, Typeable)
+data Ioke = Cell String (Maybe ArgList) | Symbol LitSymb | Dict [DictElem] | IList [IListElem] | Comment String | LiteralString LitS | QuotedMessage | QuasiQuotedMessage | UnQuotedMessage | Ret | Fullstop | ISpace Int | BangLine String | MethodComment String | Key String | Brackets Int [Ioke] deriving (Show, Data, Eq, Typeable)
+
+data ArgList = ArgList Int  deriving (Show, Data, Eq, Typeable)
 
 data DictElem = KV String String | Hash String String | DictMessage Message deriving (Show, Data, Eq, Typeable)
 
@@ -27,7 +29,10 @@ data Chunk = Lit String | Escape String | Interpolate MessageLine | RawInsert St
 
 [peggy|
 ioke :: [Ioke]
-  = (ret / dot / comment / hashbang / ispace / istring / isymbol)*
+  = (ret / dot / comment / hashbang / ispace / istring / isymbol / bracketedexpr)*
+
+bracketedexpr :: Ioke
+  = '(' ioke ')' { Brackets 0 $1 }
 
 isymbol :: Ioke
   = ':' (baresymbol / symbolstr) { Symbol $1 }
