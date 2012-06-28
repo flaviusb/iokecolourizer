@@ -15,6 +15,6 @@ tweet :: String
   = '@' [A-Za-z_0-9]+ !. { "<a href=\"http://twitter.com/" ++ $1 ++"\">@" ++ $1 ++ "</a>" }
 
 urltext :: String
-  = ( "http://" { "http://" } / "https://" { "https://" } ) [^ /n/r]+ !. { "<a href=\"" ++ $1 ++ $2 ++ "\">" ++ $1 ++ $2 ++ "</a>" }
+  = ( "http://" { "http://" } / "https://" { "https://" } ) [^ \n\r]+ !. { "<a href=\"" ++ $1 ++ $2 ++ "\">" ++ $1 ++ $2 ++ "</a>" }
 
 |]
