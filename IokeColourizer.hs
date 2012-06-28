@@ -35,6 +35,7 @@ orEmpty str (Left  _)   = Lit str
 thingerize :: ([Chunk] -> [Chunk]) -> [Ioke] -> [Ioke]
 thingerize thinger = map (\expr -> (case expr of
   LiteralString str -> LiteralString (thingify thinger str)
+  Brackets lvl  ik  -> Brackets lvl (thingerize thinger ik)
   x                 -> x))
 
 thingify :: ([Chunk] -> [Chunk]) -> LitS -> LitS
